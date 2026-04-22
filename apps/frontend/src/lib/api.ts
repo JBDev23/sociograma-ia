@@ -1,5 +1,5 @@
 // src/lib/api.ts
-const API_URL = 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 const DEMO_SECRET = process.env.NEXT_PUBLIC_DEMO_SECRET || 'hackathon-ntt-2024-seguro';
 
 export async function getProjectData(projectId: string) {
