@@ -1,6 +1,7 @@
 {
   "name": "sociograma-ia-monorepo",
   "private": true,
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
     "db:up": "docker-compose up -d",
     "db:stop": "docker-compose stop",
