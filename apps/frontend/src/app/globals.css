@@ -1,0 +1,26 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+.react-flow__node {
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@theme {
+  /* Paleta de Colores Personalizada */
+  --color-brand-orange: #ff771c;
+  --color-brand-cream: #f5ede0;
+  --color-brand-dark: #161311;
+  --color-brand-slate: #546877;
+
+  /* Tipografías Combinadas */
+  --font-sans: "DM Sans", ui-sans-serif, system-ui;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular;
+
+}
+
+/* Base de la aplicación con la nueva paleta */
+@layer base {
+  body {
+    @apply bg-brand-cream text-brand-dark font-sans;
+  }
+}

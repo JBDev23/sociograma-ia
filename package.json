@@ -1,0 +1,10 @@
+{
+  "name": "sociograma-ia-monorepo",
+  "private": true,
+  "scripts": {
+    "db:up": "docker-compose up -d",
+    "db:stop": "docker-compose stop",
+    "prisma:generate": "pnpm --filter backend exec prisma generate",
+    "dev": "pnpm db:up && pnpm prisma:generate && pnpm -r --parallel run dev"
+  }
+}

@@ -1,0 +1,129 @@
+// apps/backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RelationshipType {
+  AFFINITY
+  CONFLICT
+}
+
+enum RelContext {
+  WORK // Con quién trabajar
+  PLAY // Con quién jugar
+}
+
+enum FormStatus {
+  DRAFT // Borrador
+  ACTIVE // Activo
+  CLOSED // Finalizado
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+
+  savedDistributions   Json?   @default("[]")
+  activeDistributionId String?
+
+  classroomLayouts Json? @default("[]")
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  members       Member[]
+  relationships Relationship[]
+  forms         Form[] // <-- RELACIÓN HACIA FORMULARIOS
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id   String @id @default(uuid())
+  name String
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Relaciones donde este miembro es el que elige
+  sentRelationships     Relationship[] @relation("FromMember")
+  // Relaciones donde este miembro es el elegido
+  receivedRelationships Relationship[] @relation("ToMember")
+
+  // <-- ESTA ES LA LÍNEA QUE FALTABA PARA ARREGLAR TU ERROR
+  formResponses FormResponse[]
+
+  createdAt DateTime @default(now())
+}
+
+model Relationship {
+  id      String         @id @default(uuid())
+  type    RelationshipType @default(AFFINITY)
+  context RelContext       @default(WORK)
+  weight  Int              @default(1)
+
+  fromId String
+  from   Member @relation("FromMember", fields: [fromId], references: [id], onDelete: Cascade)
+
+  toId String
+  to   Member @relation("ToMember", fields: [toId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  formId String
+  form   Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@unique([fromId, toId, formId, context])
+}
+
+// ==========================================
+// NUEVOS MODELOS PARA FORMULARIOS
+// ==========================================
+
+model Form {
+  id       String     @id @default(uuid())
+  title    String
+  status   FormStatus @default(DRAFT)
+  deadline DateTime? 
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  responses FormResponse[] 
+  
+  relationships Relationship[] 
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FormResponse {
+  id String @id @default(uuid())
+
+  formId String
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // Un alumno solo puede contestar un formulario una vez
+  @@unique([formId, memberId])
+}

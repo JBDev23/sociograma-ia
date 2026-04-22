@@ -1,0 +1,36 @@
+# 📦 DEPENDENCIAS (Aplica a la raíz, front y back)
+node_modules
+.pnpm-store
+
+# 🔐 VARIABLES DE ENTORNO
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# 🏗️ BUILDS Y COMPILADOS
+dist
+build
+.next
+.turbo
+
+# 🗄️ PRISMA Y DATOS LOCALES
+*.db
+*.sqlite
+*.sqlite3
+/generated/prisma
+
+# 📝 LOGS Y SISTEMA OPERATIVO
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# 🛠️ IDEs
+.idea
+.vscode/*
+!.vscode/settings.json
