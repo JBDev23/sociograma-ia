@@ -27,9 +27,9 @@ export default function LandingPage() {
         <div className="max-w-[1200px] mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-brand-orange rounded-xl flex items-center justify-center font-black text-white text-xl shadow-lg shadow-brand-orange/20">
-              S
+              W
             </div>
-            <span className="font-bold text-2xl tracking-tight text-brand-dark">Sociograma IA</span>
+            <span className="font-bold text-2xl tracking-tight text-brand-dark">Weavy IA</span>
           </div>
           <div className="hidden md:flex items-center gap-8 font-semibold text-brand-slate text-sm">
             <a href="#features" className="hover:text-brand-orange transition-colors">Características</a>

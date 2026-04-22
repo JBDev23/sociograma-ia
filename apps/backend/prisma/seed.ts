@@ -20,159 +20,154 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 async function main() {
-  console.log('🌱 Iniciando seeding multitemático...');
+  console.log('🌱 Iniciando seeding con Perfiles Psicológicos (Demo Mode)...');
 
-  // Limpieza total (Ordenado para respetar llaves foráneas por si acaso)
   await prisma.formResponse.deleteMany();
-  await prisma.relationship.deleteMany(); // <-- Ahora las relaciones dependen de Form y Project
+  await prisma.relationship.deleteMany();
   await prisma.form.deleteMany();
   await prisma.member.deleteMany();
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
 
-  // 1. Usuario único (Dueño de todo)
   const admin = await prisma.user.create({
-    data: { 
-      id: "user-martinez",
-      email: 'profesor@colegio.com', 
-      name: 'Profesor Martínez' 
-    },
+    data: { id: "user-martinez", email: 'profesor@colegio.com', name: 'Profesor Martínez' },
   });
 
   // =========================================================
-  // PROYECTO 1: 4º ESO - EL COMPLETO (Relaciones + Formulario Finalizado)
+  // 🌟 PROYECTO 1: 4º ESO (Con Alumno Aislado y Rechazado)
   // =========================================================
   const p1 = await prisma.project.create({
     data: {
       id: "project-1",
-      title: '4º ESO - Sociograma Anual',
-      description: 'Análisis de cohesión grupal al finalizar el primer trimestre. Incluye relaciones cruzadas de trabajo y ocio.',
+      title: '4º ESO - Sociograma Final Trimestre',
+      description: 'Análisis de cohesión grupal. Red densa de 20 alumnos.',
       ownerId: admin.id,
     },
   });
 
-  const namesP1 = ['Hugo', 'Martina', 'Leo', 'Julia', 'Mateo', 'Valeria', 'Lucas', 'Alba', 'Daniel', 'Noa', 'Alejandro', 'Emma', 'Pablo', 'Carmen', 'Álvaro'];
-  const membersP1 = await Promise.all(namesP1.map(name => prisma.member.create({ data: { name, projectId: p1.id } })));
+  const namesP1 = [
+    'Hugo', 'Martina', 'Leo', 'Julia', 'Mateo', 
+    'Valeria', 'Lucas', 'Alba', 'Daniel', 'Noa', 
+    'Alejandro', 'Emma', 'Pablo', 'Carmen', 'Álvaro',
+    'Sara', 'Diego', 'Carla', 'Mario', 'Irene'
+  ];
+  
+  const membersP1 = await Promise.all(
+    namesP1.map(name => prisma.member.create({ data: { name, projectId: p1.id } }))
+  );
 
-  // 👇 CAMBIO 1: Creamos el Formulario ANTES que las relaciones
   const f1 = await prisma.form.create({
     data: {
       title: 'Test Sociométrico Oficial - 4º ESO',
       status: 'CLOSED',
       projectId: p1.id,
-      deadline: new Date()
+      deadline: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
     }
   });
 
-  // 👇 CAMBIO 2: Generar relaciones densas pasándole el formId
-  const rels: any = [];
+  const aisladoId = membersP1.find(m => m.name === 'Mario')!.id;
+  const rechazadoId = membersP1.find(m => m.name === 'Diego')!.id;
+
+  const rels: any[] = [];
+  
   for (const member of membersP1) {
-    const candidates = shuffleArray(membersP1.filter(m => m.id !== member.id));
-    const parts = [
-      { list: candidates.slice(0, 2), type: 'AFFINITY', context: 'WORK' },
-      { list: candidates.slice(2, 4), type: 'CONFLICT', context: 'WORK' },
-      { list: candidates.slice(4, 6), type: 'AFFINITY', context: 'PLAY' }
+    // 1. Pool de alumnos disponibles (excluyendo a uno mismo y a Mario)
+    let available = membersP1.filter(m => m.id !== member.id && m.id !== aisladoId);
+    available = shuffleArray(available);
+
+    const affinityWork: any[] = [];
+    const conflictWork: any[] = [];
+    const affinityPlay: any[] = [];
+    const conflictPlay: any[] = [];
+
+    // 2. Lógica del rechazado (Diego)
+    if (member.id !== rechazadoId && Math.random() > 0.3) {
+      // Sacamos a Diego del pool general para que no salga en afinidad por error
+      available = available.filter(m => m.id !== rechazadoId);
+      const diego = membersP1.find(m => m.id === rechazadoId)!;
+      
+      // Lo colocamos como primera opción de conflicto
+      conflictWork.push(diego);
+      conflictPlay.push(diego);
+    }
+
+    // 3. Rellenamos los huecos sacando a la gente de la lista (así NUNCA se repiten)
+    while (affinityWork.length < 3) affinityWork.push(available.shift()!);
+    while (conflictWork.length < 3) conflictWork.push(available.shift()!);
+    while (affinityPlay.length < 3) affinityPlay.push(available.shift()!);
+    while (conflictPlay.length < 3) conflictPlay.push(available.shift()!);
+
+    const categories = [
+      { type: 'AFFINITY', context: 'WORK', list: affinityWork },
+      { type: 'CONFLICT', context: 'WORK', list: conflictWork },
+      { type: 'AFFINITY', context: 'PLAY', list: affinityPlay },
+      { type: 'CONFLICT', context: 'PLAY', list: conflictPlay }
     ];
 
-    parts.forEach(p => p.list.forEach((target, i) => {
-      rels.push({ 
-        projectId: p1.id, 
-        formId: f1.id, // <-- ENLACE CLAVE AL FORMULARIO
-        fromId: member.id, 
-        toId: target.id, 
-        type: p.type, 
-        context: p.context, 
-        weight: 3 - i 
+    for (const cat of categories) {
+      cat.list.forEach((target, index) => {
+        rels.push({
+          projectId: p1.id, formId: f1.id, fromId: member.id, toId: target.id,
+          type: cat.type, context: cat.context, weight: 3 - index 
+        });
       });
-    }));
+    }
   }
   await prisma.relationship.createMany({ data: rels });
 
-  // Todos respondieron
   await prisma.formResponse.createMany({
     data: membersP1.map(m => ({ formId: f1.id, memberId: m.id }))
   });
 
 
   // =========================================================
-  // PROYECTO 2: Primaria 5º - EL ACTIVO (A medias)
+  // ⚡ PROYECTO 2: Primaria 5º (Activo, a la mitad)
   // =========================================================
   const p2 = await prisma.project.create({
-    data: {
-      id: "project-2",
-      title: 'Primaria 5º - Grupo A',
-      description: 'Proyecto activo. Los alumnos están respondiendo actualmente a la encuesta de convivencia.',
-      ownerId: admin.id,
-    },
+    data: { id: "project-2", title: 'Primaria 5º - Grupo A', description: 'Proyecto activo. Mitad de respuestas.', ownerId: admin.id },
   });
 
-  const namesP2 = ['Santi', 'Lucía', 'Marcos', 'Elena', 'Tomás', 'Sofía', 'Bruno', 'Paula'];
+  const namesP2 = ['Santi', 'Lucía', 'Marcos', 'Elena', 'Tomás', 'Sofía', 'Bruno', 'Paula', 'David', 'Clara'];
   const membersP2 = await Promise.all(namesP2.map(name => prisma.member.create({ data: { name, projectId: p2.id } })));
 
   const f2 = await prisma.form.create({
-    data: {
-      title: 'Encuesta de Convivencia y Juego',
-      status: 'ACTIVE',
-      projectId: p2.id,
-      deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3) // en 3 días
-    }
+    data: { title: 'Encuesta de Convivencia', status: 'ACTIVE', projectId: p2.id, deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3) }
   });
 
-  // Cogemos a los 4 primeros
-  const respondedMembersP2 = membersP2.slice(0, 4);
-
-  // 1. Guardamos que han respondido (¡SOLO UNA VEZ!)
+  const respondedMembersP2 = membersP2.slice(0, 5);
   await prisma.formResponse.createMany({
     data: respondedMembersP2.map(m => ({ formId: f2.id, memberId: m.id }))
   });
 
-  // 2. Les generamos sus flechas
-  const relsP2: any = [];
+  const relsP2: any[] = [];
   for (const member of respondedMembersP2) {
-    const candidates = shuffleArray(membersP2.filter(m => m.id !== member.id));
+    let available = membersP2.filter(m => m.id !== member.id);
+    available = shuffleArray(available);
     
-    relsP2.push({ projectId: p2.id, formId: f2.id, fromId: member.id, toId: candidates[0].id, type: 'AFFINITY', context: 'WORK', weight: 3 });
-    relsP2.push({ projectId: p2.id, formId: f2.id, fromId: member.id, toId: candidates[1].id, type: 'CONFLICT', context: 'WORK', weight: 3 });
+    relsP2.push({ projectId: p2.id, formId: f2.id, fromId: member.id, toId: available[0].id, type: 'AFFINITY', context: 'WORK', weight: 3 });
+    relsP2.push({ projectId: p2.id, formId: f2.id, fromId: member.id, toId: available[1].id, type: 'CONFLICT', context: 'PLAY', weight: 3 });
   }
   await prisma.relationship.createMany({ data: relsP2 });
 
 
   // =========================================================
-  // PROYECTO 3: Bachillerato - EL BORRADOR (Nuevo)
+  // 📝 PROYECTO 3: Bachillerato (Borrador vacío)
   // =========================================================
   const p3 = await prisma.project.create({
-    data: {
-      id: "project-3",
-      title: '1º Bachillerato - Psicología',
-      description: 'Configuración inicial. Aún no se han importado todos los alumnos.',
-      ownerId: admin.id,
-    },
+    data: { id: "project-3", title: '1º Bachillerato - Ciencias', description: 'Borrador inicial.', ownerId: admin.id },
   });
 
-  await prisma.member.create({ data: { name: 'Alumno de prueba', projectId: p3.id } });
-
-  await prisma.form.create({
-    data: {
-      title: 'Dinámicas de grupo - Avanzado',
-      status: 'DRAFT',
-      projectId: p3.id
-    }
-  });
+  await prisma.form.create({ data: { title: 'Dinámicas de grupo - Avanzado', status: 'DRAFT', projectId: p3.id } });
 
   console.log(`
-    ✅ Seeding completado con éxito:
-    - 1 Usuario: ${admin.email}
-    - 3 Proyectos con diferentes estados.
-    - 3 Formularios (CLOSED, ACTIVE, DRAFT).
-    - ${rels.length} Relaciones generadas vinculadas a su respectivo formulario.
+  🚀 ¡Seeding con arquetipos psicológicos completado sin colisiones!
+  ================================================
+  👤 Usuario: ${admin.email}
+  👻 Alumno Aislado: Mario (0 votos recibidos)
+  🎯 Alumno Rechazado: Diego (Alta concentración de conflictos)
   `);
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error('❌ Error fatal:', e); process.exit(1); })
+  .finally(async () => { await prisma.$disconnect(); });

@@ -49,9 +49,9 @@ export default function GlobalHeader() {
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-brand-orange rounded-lg flex items-center justify-center font-bold text-white group-hover:scale-105 transition-transform">
-              S
+              W
             </div>
-            <span className="font-bold text-lg tracking-tight">Sociograma</span>
+            <span className="font-bold text-lg tracking-tight">Weavy IA</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
