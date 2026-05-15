@@ -204,6 +204,8 @@ export async function getAiGroupProposal(projectId: string, prompt: string, numG
     body: JSON.stringify({ prompt, numGroups, formId }),
   });
 
+  console.error(response.status)
+
   if (response.status === 429) {
     throw new Error("LIMITE_IA_ALCANZADO");
   }
@@ -215,6 +217,7 @@ export async function getAiGroupProposal(projectId: string, prompt: string, numG
 
 import { Member } from "@sociograma/shared";
 import { Node } from "@xyflow/react";
+import { error } from "console";
 
 export const distributeStudentsWithAI = async (
   nodes: Node[],
