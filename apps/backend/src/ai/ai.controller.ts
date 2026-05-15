@@ -2,8 +2,10 @@
 import { Controller, Post, Body, Param, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { DemoSecretGuard } from './demo.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('ai')
+@UseGuards(ThrottlerGuard)
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 

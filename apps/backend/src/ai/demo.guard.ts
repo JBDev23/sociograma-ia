@@ -10,7 +10,7 @@ export class DemoSecretGuard implements CanActivate {
     const clientSecret = request.headers['x-demo-secret'];
     
     // Lo comparamos con la variable de entorno de tu servidor
-    const serverSecret = process.env.DEMO_SECRET || 'hackathon-ntt-2024-seguro';
+    const serverSecret = process.env.DEMO_SECRET;
 
     if (clientSecret !== serverSecret) {
       console.warn('⚠️ Intento de acceso bloqueado a la IA desde:', request.ip);

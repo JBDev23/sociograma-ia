@@ -56,11 +56,17 @@ export default function AiAssistant({ projectId, onApplyGroups, selectedFormId }
       };
       
       setMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = 'No he podido conectar con el servidor. Por favor, inténtalo de nuevo.';
+      
+      if (error.message === "LIMITE_IA_ALCANZADO") {
+        errorMessage = "Has superado el límite de 2 análisis de IA por día. ¡Vuelve mañana!";
+      }
+
       setMessages(prev => [...prev, { 
         id: Date.now().toString(), 
         role: 'assistant', 
-        content: 'No he podido conectar con el servidor. Por favor, inténtalo de nuevo.',
+        content: errorMessage,
         isError: true
       }]);
     } finally {

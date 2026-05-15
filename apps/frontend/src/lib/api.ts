@@ -1,6 +1,6 @@
 // src/lib/api.ts
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-const DEMO_SECRET = process.env.NEXT_PUBLIC_DEMO_SECRET || 'hackathon-ntt-2024-seguro';
+const DEMO_SECRET = process.env.NEXT_PUBLIC_DEMO_SECRET || '';
 
 export async function getProjectData(projectId: string) {
   const response = await fetch(`${API_URL}/projects/${projectId}`, {
@@ -204,61 +204,13 @@ export async function getAiGroupProposal(projectId: string, prompt: string, numG
     body: JSON.stringify({ prompt, numGroups, formId }),
   });
 
+  if (response.status === 429) {
+    throw new Error("LIMITE_IA_ALCANZADO");
+  }
+
   if (!response.ok) throw new Error('Error al obtener respuesta de la IA');
+  
   return response.json(); 
-
-  
-  
-     return (
-      {
-        "suggestedGroups": [
-          {
-            "groupName": "Grupo de trabajo académico 1",
-            "members": [
-              "Hugo",
-              "Alejandro",
-              "Emma",
-              "Sofía",
-              "David"
-            ]
-          },
-          {
-            "groupName": "Grupo de trabajo académico 2",
-            "members": [
-              "Pablo",
-              "Carmen",
-              "Álvaro",
-              "Mateo",
-              "Mia"
-            ]
-          },
-          {
-            "groupName": "Grupo de trabajo diverso 1",
-            "members": [
-              "Martina",
-              "Julia",
-              "Valeria",
-              "Noa",
-              "Alba"
-            ]
-          },
-          {
-            "groupName": "Grupo de trabajo diverso 2",
-            "members": [
-              "Lucas",
-              "Daniel",
-              "Leo",
-              "Adrián",
-              "Alma"
-            ]
-          }
-        ],
-        "explanation": "He creado grupos que priorizan las afinidades de trabajo y evitan conflictos de trabajo. Los grupos 1 y 2 están formados por personas con afinidades académicas, mientras que los grupos 3 y 4 están formados por personas con diversidad de intereses y afinidades. He separado a las personas con conflictos de trabajo, como Lucas y Alejandro, y a las personas con conflictos de ocio, como Lucas y Valeria."
-      }
-    )
-  
-
-
 }
 
 import { Member } from "@sociograma/shared";
@@ -429,4 +381,14 @@ export async function resetDatabase() {
 
   if (!response.ok) throw new Error('Error al resetear la base de datos');
   return response.json();
+}
+
+export async function pingBackend() {
+  try {
+    // Hacemos una petición rápida a la raíz para forzar el cold start
+    await fetch(`${API_URL}/`, { cache: 'no-store' });
+  } catch (error) {
+    // Ignoramos errores, el objetivo es solo despertar la máquina
+    console.log("Ping al backend enviado");
+  }
 }
