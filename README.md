@@ -1,4 +1,5 @@
-# Sociograma IA
+# Weavy IA
+<img width="1920" height="911" alt="Screen Shot 05-15-26 at 12 13 PM" src="https://github.com/user-attachments/assets/a7035130-4d2c-4d5b-a152-528cd385dbe3" />
 
 Este repositorio contiene el código fuente de Sociograma IA, un proyecto desarrollado en menos de una semana para el hackathon TechForEquality 2026, organizado por ACM UPV, para dar solución al reto propuesto por NTT Data.
 
@@ -25,3 +26,10 @@ El proyecto está estructurado como un monorepo gestionado con pnpm. La pila tec
 * **Formularios Dinámicos:** Creación de formularios con diferentes estados (Borrador, Activo, Cerrado) para que los usuarios introduzcan sus elecciones de forma estructurada.
 * **Mapeo de Relaciones:** Registro de relaciones direccionales entre miembros, categorizadas por tipo (Afinidad o Conflicto) y contexto (Trabajo o Juego) junto con un peso asociado.
 * **Generación de Códigos QR:** Facilidad de acceso a los formularios compartidos mediante la librería `react-qr-code` integrada en el cliente.
+  
+<img width="1920" height="911" alt="Screen Shot 05-15-26 at 12 14 PM" src="https://github.com/user-attachments/assets/b4d2a5c1-9672-4444-ba09-d3214056b55c" />
+Mapeo de Relaciones
+
+<img width="1920" height="911" alt="Screen Shot 05-15-26 at 12 14 PM 001" src="https://github.com/user-attachments/assets/5156924f-497e-4314-b39b-ef1653a20756" />
+Gestión de Proyectos y Aulas
+
