@@ -58,6 +58,7 @@ export default function AiAssistant({ projectId, onApplyGroups, selectedFormId }
       setMessages(prev => [...prev, aiMsg]);
     } catch (error: any) {
       let errorMessage = 'No he podido conectar con el servidor. Por favor, inténtalo de nuevo.';
+      console.log(error)
       
       if (error.message === "LIMITE_IA_ALCANZADO") {
         errorMessage = "Has superado el límite de 2 análisis de IA por día. ¡Vuelve mañana!";
